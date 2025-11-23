@@ -30,13 +30,13 @@ class User(UserBase, table=True):
     hashed_password: str
     items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
 
-class Item(SQLModel):
+class ItemBase(SQLModel):
     name: str = Field(index = True)
     age: int | None = Field(default = None, index = True)
+
+class DBItem(ItemBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     owner_id: uuid.UUID = Field(
         foreign_key="user.id", nullable=False, ondelete="CASCADE"
     )
     owner: User | None = Relationship(back_populates="items")
-
-class DBItem(Item, table=True):
-    id: int | None = Field(default=None, primary_key=True)
