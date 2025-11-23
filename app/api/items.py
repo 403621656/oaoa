@@ -1,5 +1,7 @@
+import uuid
+
 from fastapi import Depends, HTTPException, Query, APIRouter
-from ..models import DBItem, Item, get_session
+from app.models import DBItem, Item, get_session
 from typing import Annotated
 from sqlmodel import Session, select
 
@@ -14,8 +16,8 @@ SessionDep = Annotated[Session, Depends(get_session)]
 
 
 @router.post("/")
-async def create_items(item:Item, session:SessionDep):
-    db_item = DBItem.model_validate(item)
+async def create_items(item:Item, owner_id:uuid.UUID, session:SessionDep):
+    db_item = DBItem.model_validate(item, update={"owner_id":owner_id})
     session.add(db_item)
     session.commit()
     session.refresh(db_item)
