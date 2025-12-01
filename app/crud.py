@@ -1,24 +1,28 @@
-import uuid
-
-from fastapi import APIRouter,HTTPException   #Query
-from app.api.items import SessionDep
+from fastapi import HTTPException
+from app.api.routes.items import SessionDep
+from pydantic import EmailStr
 from app.models import User, UserCreate, UserUpdate
-from sqlmodel import select
-from pwdlib import PasswordHash
-#from typing import Annotated
+from sqlmodel import select, Session
+from app.core.security import get_hashed_password, verify_password
 
-def get_hashed_password(password:str) -> str:
-    password_hash = PasswordHash.recommended()
-    hashed_password = password_hash.hash(password)
-    return hashed_password
 
-router = APIRouter(
-    prefix = "/users",
-    tags = ["users"]
-)
 
-@router.post("/", response_model=User)
-async def create_user(user_create:UserCreate, session:SessionDep):
+def get_user_by_email(*, email:EmailStr, session:Session):
+    statement = select(User).where(User.email==email)
+    db_user = session.exec(statement).first()
+    return db_user
+
+def authenticate(*, email:EmailStr, password:str, session:Session):
+    db_user = get_user_by_email(email=email, session=session)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="Incorrect email")
+    if not verify_password(password, db_user.hashed_password):
+        raise HTTPException(status_code=404, detail="Incorrect password")
+    return db_user
+
+
+
+def create_user(*, user_create:UserCreate, session:SessionDep):
     db_user = User.model_validate(
         user_create, update={"hashed_password":get_hashed_password(user_create.password)}
     )
@@ -27,19 +31,7 @@ async def create_user(user_create:UserCreate, session:SessionDep):
     session.refresh(db_user)
     return db_user
 
-# @router.get("/", response_model=list[User])
-# async def get_users(
-#         *, session:SessionDep, offset: int = 0, limit:Annotated[int, Query(le=100)]=100
-# ):
-#     db_users = session.exec(select(User).offset(offset).limit(limit)).all()
-#     return db_users
-
-@router.patch("/", response_model=User)
-async def update_user(*, user_in:UserUpdate, email:str, session:SessionDep):
-    db_url = select(User).where(User.email==email)
-    db_user = session.exec(db_url).first()
-    if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
+def update_user(*, user_in:UserUpdate, db_user:User, session:SessionDep):
     user_update = user_in.model_dump(exclude_unset=True)
     extra_data = {}
     if "password" in user_update:
@@ -51,8 +43,7 @@ async def update_user(*, user_in:UserUpdate, email:str, session:SessionDep):
     session.refresh(db_user)
     return db_user
 
-@router.get("/", response_model=User)
-async def get_user(*, email:str, session:SessionDep):
+def get_user(*, email:EmailStr, session:SessionDep):
     db_url = select(User).where(User.email==email)
     db_user = session.exec(db_url).first()
     if not db_user:
