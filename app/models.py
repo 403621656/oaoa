@@ -1,11 +1,8 @@
-from sqlmodel import Field, create_engine, SQLModel, Session, Relationship
-from .config import db_config
+from sqlmodel import Field, SQLModel, Session, Relationship
+from app.core.db import engine
 from pydantic import EmailStr
 import uuid
 
-
-sql_url = db_config.DATABASE_URL
-engine = create_engine(sql_url)
 
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
@@ -17,7 +14,8 @@ def get_session():
 class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
     is_active: bool = True
-    is_superuser: bool = True
+    is_superuser: bool = False
+    username: str = Field(max_length=255)
 
 class UserCreate(UserBase):
     password: str = Field(min_length=8, max_length=128)
@@ -25,11 +23,22 @@ class UserCreate(UserBase):
 class UserUpdate(UserBase):
     email: EmailStr | None = Field(default=None, max_length=255)
     password: str | None = Field(default=None, min_length=8, max_length=128)
+    username: str | None = Field(default=None, max_length=255)
+
+class UserUpdateMe(SQLModel):
+    email: EmailStr | None = Field(default=None, max_length=255)
+    password: str | None = Field(default=None, min_length=8, max_length=128)
+    username: str | None = Field(default=None, max_length=255)
+
+class UserRegister(SQLModel):
+    email: EmailStr = Field(max_length=255)
+    password: str = Field(min_length=8, max_length=128)
+    username: str = Field(max_length=255)
 
 class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
-    items: list["DBItem"] = Relationship(back_populates="owner", cascade_delete=True)
+    items: list["DBItem"] = Relationship(back_populates="owner")
 
 class Item(SQLModel):
     name: str = Field(index=True)
@@ -41,3 +50,10 @@ class DBItem(Item, table=True):
         foreign_key="user.id", nullable=False, ondelete="CASCADE"
     )
     owner: User | None = Relationship(back_populates="items")
+
+class TokenPayload(SQLModel):
+    sub:str
+
+class Token(SQLModel):
+    access_token: str
+    token_type: str

@@ -1,5 +1,10 @@
 import os
 from dotenv import load_dotenv      #导入环境变量的管理模块
+import secrets
+
+SECRET_KEY = secrets.token_urlsafe(32)
+
+ACESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
 
 load_dotenv()       #加载.env文件中的环境变量
 
