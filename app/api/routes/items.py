@@ -28,7 +28,7 @@ async def delete_item(item_id:int, user:CurrentDep, session:SessionDep):
             status_code = 404,
             detail = "not found",
         )
-    if not db_item.is_superuser and db_item.id != user.id:
+    if not user.is_superuser and db_item.owner_id != user.id:
         raise HTTPException(
             status_code = 400,
             detail = "Not enough permissions",
@@ -45,7 +45,7 @@ async def update_item(item_id:int, item:Item, user:CurrentDep, session:SessionDe
             status_code = 404,
             detail = "not found"
         )
-    if not db_item.is_superuser and db_item.id != user.id:
+    if not user.is_superuser and db_item.owner_id != user.id:
         raise HTTPException(
             status_code = 400,
             detail = "Not enough permissions",
@@ -78,7 +78,7 @@ async def read_item(item_id:int, user:CurrentDep, session:SessionDep):
             status_code = 404,
             detail = "not found"
         )
-    if not db_item.is_superuser and db_item.id != user.id:
+    if not user.is_superuser and db_item.owner_id != user.id:
         raise HTTPException(
             status_code = 400,
             detail = "Not enough permissions",

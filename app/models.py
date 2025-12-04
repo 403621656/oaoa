@@ -1,15 +1,7 @@
-from sqlmodel import Field, SQLModel, Session, Relationship
-from app.core.db import engine
+from sqlmodel import Field, SQLModel, Relationship
 from pydantic import EmailStr
 import uuid
 
-
-def create_db_and_tables():
-    SQLModel.metadata.create_all(engine)
-
-def get_session():
-    with Session(engine) as session:
-        yield session
 
 class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
