@@ -10,6 +10,7 @@ from app.core.config import SECRET_KEY
 from app.core.security import ALGORITHM
 from jwt.exceptions import InvalidTokenError
 from pydantic import ValidationError
+from datetime import datetime, timezone
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login/access-token")   #template多了 /api/v1
 
@@ -40,6 +41,10 @@ def get_current_user(token: TokenDep, session: SessionDep) -> User :
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Inactive user",
         )
+    username_int = int(user.username)
+    time_now = int(datetime.now(timezone.utc).strftime("%Y%m%d"))
+    if username_int < 20000101 or username_int > time_now:
+        raise HTTPException(status_code=400, detail="Inactive user")
     return user
 
 CurrentDep = Annotated[User, Depends(get_current_user)]
