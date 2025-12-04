@@ -1,5 +1,4 @@
 from fastapi import HTTPException
-from app.api.routes.items import SessionDep
 from pydantic import EmailStr
 from app.models import User, UserCreate, UserUpdate
 from sqlmodel import select, Session
@@ -22,7 +21,7 @@ def authenticate(*, email:EmailStr, password:str, session:Session):
 
 
 
-def create_user(*, user_create:UserCreate, session:SessionDep):
+def create_user(*, user_create:UserCreate, session:Session):
     db_user = User.model_validate(
         user_create, update={"hashed_password":get_hashed_password(user_create.password)}
     )
@@ -31,7 +30,7 @@ def create_user(*, user_create:UserCreate, session:SessionDep):
     session.refresh(db_user)
     return db_user
 
-def update_user(*, user_in:UserUpdate, db_user:User, session:SessionDep):
+def update_user(*, user_in:UserUpdate, db_user:User, session:Session):
     user_update = user_in.model_dump(exclude_unset=True)
     extra_data = {}
     if "password" in user_update:
@@ -43,7 +42,7 @@ def update_user(*, user_in:UserUpdate, db_user:User, session:SessionDep):
     session.refresh(db_user)
     return db_user
 
-def get_user(*, email:EmailStr, session:SessionDep):
+def get_user(*, email:EmailStr, session:Session):
     db_url = select(User).where(User.email==email)
     db_user = session.exec(db_url).first()
     if not db_user:
