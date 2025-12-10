@@ -15,17 +15,17 @@ class UserCreate(UserBase):
 class UserUpdate(UserBase):
     email: EmailStr | None = Field(default=None, max_length=255)
     password: str | None = Field(default=None, min_length=8, max_length=128)
-    username: str | None = Field(default=None, max_length=255)
+    full_name: str | None = Field(default=None, max_length=255)
 
 class UserUpdateMe(SQLModel):
     email: EmailStr | None = Field(default=None, max_length=255)
     password: str | None = Field(default=None, min_length=8, max_length=128)
-    username: str | None = Field(default=None, max_length=255)
+    full_name: str | None = Field(default=None, max_length=255)
 
 class UserRegister(SQLModel):
     email: EmailStr = Field(max_length=255)
     password: str = Field(min_length=8, max_length=128)
-    username: str = Field(max_length=255)
+    full_name: str = Field(max_length=255)
 
 class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)

@@ -70,7 +70,7 @@ async def delete_user(session:SessionDep, current_user: CurrentDep, user_id:uuid
 async def update_me(*, session:SessionDep, current_user:CurrentDep, user_in:UserUpdateMe):
     if user_in.email:
         user_new = crud.get_user_by_email(email=user_in.email, session=session)
-        if user_new and user_new.email != current_user.eamil:
+        if user_new and user_new.email != current_user.email:
             raise HTTPException(status_code=409, detail="Email already registered")
     user_update = UserUpdate.model_validate(user_in)
     user = crud.update_user(session=session, db_user=current_user, user_in=user_update)
