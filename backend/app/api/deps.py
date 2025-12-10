@@ -11,7 +11,7 @@ from app.core.security import ALGORITHM
 from jwt.exceptions import InvalidTokenError
 from pydantic import ValidationError
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login/access-token")   #template多了 /api/v1
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/login/access-token")
 
 def get_session() -> Generator[Session, None, None]:
     with Session(engine) as session:

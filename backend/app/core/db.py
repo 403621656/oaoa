@@ -20,7 +20,7 @@ def init_db(session:Session) -> None:
     user_super = session.exec(statement).first()
     if not user_super:
         create_super = UserCreate(
-            username=os.getenv("USERNAME"),
+            full_name=os.getenv("USERNAME"),
             email=os.getenv("EMAIL"),
             password=os.getenv("PASSWORD"),
             is_superuser=True,
