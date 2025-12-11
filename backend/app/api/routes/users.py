@@ -54,7 +54,7 @@ async def delete_me(session: SessionDep, current_user: CurrentDep):
     return {"message": "User deleted successfully"}
 
 @router.delete("/{user_id}", dependencies=[Depends(get_current_active_superuser)],response_model=UserPublic)
-async def delete_user(session:SessionDep, current_user: CurrentDep, user_id:uuid.UUID):
+async def delete_user(session: SessionDep, current_user: CurrentDep, user_id: uuid.UUID):
     user_db = session.get(User, user_id)
     if not user_db:
         raise HTTPException(status_code=404, detail="User not found")
