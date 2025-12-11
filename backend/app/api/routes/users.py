@@ -34,7 +34,7 @@ async def create_user(*, session:SessionDep, user_in:UserCreate):
     user_db = crud.create_user(user_create=user_in, session=session)
     return user_db
 
-@router.post("/signup",response_model=UserPublic)
+@router.post("/signup", response_model=UserPublic)
 async def register_user(session:SessionDep, user_in:UserRegister):
     user_db = crud.get_user_by_email(email=user_in.email, session=session)
     if user_db:
