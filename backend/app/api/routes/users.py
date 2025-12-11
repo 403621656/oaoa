@@ -26,7 +26,7 @@ async def get_users(
 async def get_user(current_user:CurrentDep):
     return current_user
 
-@router.post("/",dependencies=[Depends(get_current_active_superuser)], response_model=UserPublic)
+@router.post("/", dependencies=[Depends(get_current_active_superuser)], response_model=UserPublic)
 async def create_user(*, session:SessionDep, user_in:UserCreate):
     user_db = crud.get_user_by_email(email=user_in.email, session=session)
     if user_db:
