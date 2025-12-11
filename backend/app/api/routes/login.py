@@ -11,7 +11,7 @@ from datetime import timedelta
 router = APIRouter()
 
 @router.post("/login/access-token", response_model=Token)
-def login_access_token(*, form_data : Annotated[OAuth2PasswordRequestForm, Depends()], session : SessionDep):
+def login_access_token(form_data : Annotated[OAuth2PasswordRequestForm, Depends()], session: SessionDep):
     user = authenticate(email=form_data.username, password=form_data.password, session=session)
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect email or password")

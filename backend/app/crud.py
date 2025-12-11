@@ -33,7 +33,7 @@ def create_user(*, user_create:UserCreate, session:Session):
 def update_user(*, user_in:UserUpdate, db_user:User, session:Session):
     user_update = user_in.model_dump(exclude_unset=True)
     extra_data = {}
-    if "password" in user_update:
+    if "password" in user_update and user_update["password"]:
         hashed_password = get_hashed_password(user_update["password"])
         extra_data["hashed_password"] = hashed_password
     db_user.sqlmodel_update(user_update, update=extra_data)
