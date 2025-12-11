@@ -76,7 +76,7 @@ async def update_me(*, session:SessionDep, current_user:CurrentDep, user_in:User
     user = crud.update_user(session=session, db_user=current_user, user_in=user_update)
     return user
 
-@router.patch("/{user_id}",dependencies=[Depends(get_current_active_superuser)], response_model=UserPublic)
+@router.patch("/{user_id}", dependencies=[Depends(get_current_active_superuser)], response_model=UserPublic)
 async def update_user(*, session:SessionDep, user_id:uuid.UUID, user_in:UserUpdate):
     user_db = session.get(User, user_id)
     if not user_db:
