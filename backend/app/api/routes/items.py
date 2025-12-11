@@ -69,7 +69,7 @@ async def read_items(
         count = session.exec(statement).one()
         db_items = session.exec(select(DBItem).offset(offset).limit(limit)).all()
     else:
-        statement = select(func.count).select_from(DBItem).where(DBItem.owner_id == user.id)
+        statement = select(func.count()).select_from(DBItem).where(DBItem.owner_id == user.id)
         count = session.exec(statement).one()
         db_items = session.exec(select(DBItem).offset(offset).limit(limit).where(DBItem.owner_id==user.id)).all()
     return ItemsPublic(data=db_items, count=count)
