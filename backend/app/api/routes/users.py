@@ -11,7 +11,7 @@ router = APIRouter(
     tags=["users"],
 )
 
-@router.get("/",dependencies=[Depends(get_current_active_superuser)], response_model=UsersPublic)
+@router.get("/", dependencies=[Depends(get_current_active_superuser)], response_model=UsersPublic)
 async def get_users(
         session:SessionDep,
         offset:int=0,
