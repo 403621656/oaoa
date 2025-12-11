@@ -44,7 +44,7 @@ async def register_user(session:SessionDep, user_in:UserRegister):
     return user_db
 
 @router.delete("/me")
-async def delete_me(session:SessionDep, current_user:CurrentDep):
+async def delete_me(session: SessionDep, current_user: CurrentDep):
     if current_user.is_superuser:
         raise HTTPException(status_code=403, detail="Super users are not allowed to delete themselves")
     statement = delete(DBItem).where(DBItem.owner_id==current_user.id)
