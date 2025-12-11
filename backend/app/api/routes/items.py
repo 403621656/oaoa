@@ -65,7 +65,7 @@ async def read_items(
     limit: Annotated[int, Query(le = 100)] = 100,
 ):
     if user.is_superuser:
-        statement = select(func.count).select_from(DBItem)
+        statement = select(func.count()).select_from(DBItem)
         count = session.exec(statement).one()
         db_items = session.exec(select(DBItem).offset(offset).limit(limit)).all()
     else:
