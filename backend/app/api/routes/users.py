@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Query, Depends
 from app.api.deps import CurrentDep, SessionDep, get_current_active_superuser
 from app import crud
 from app.models import User, UserCreate, UserRegister, UserUpdate, UserUpdateMe, DBItem, UserPublic, UsersPublic
-from sqlmodel import select, delete, col
+from sqlmodel import select, delete, col, func
 from typing import Annotated
 import uuid
 
@@ -13,21 +13,22 @@ router = APIRouter(
 
 @router.get("/", dependencies=[Depends(get_current_active_superuser)], response_model=UsersPublic)
 async def get_users(
-        session:SessionDep,
-        offset:int=0,
-        limit:Annotated[int, Query(le=100)] = 100,
+        session: SessionDep,
+        offset: int=0,
+        limit: Annotated[int, Query(le=100)] = 100,
 ):
-
+    count_statement = select(func.count()).select_from(User)
+    count = session.exec(count_statement).one()
     statement = select(User).offset(offset).limit(limit)
     users = session.exec(statement).all()
-    return UsersPublic(data=users, count=777)
+    return UsersPublic(data=users, count=count)
 
 @router.get("/me", response_model=UserPublic)
-async def get_user(current_user:CurrentDep):
+async def get_user(current_user: CurrentDep):
     return current_user
 
 @router.post("/", dependencies=[Depends(get_current_active_superuser)], response_model=UserPublic)
-async def create_user(*, session:SessionDep, user_in:UserCreate):
+async def create_user(session: SessionDep, user_in: UserCreate):
     user_db = crud.get_user_by_email(email=user_in.email, session=session)
     if user_db:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -53,8 +54,8 @@ async def delete_me(session: SessionDep, current_user: CurrentDep):
     session.commit()
     return {"message": "User deleted successfully"}
 
-@router.delete("/{user_id}", dependencies=[Depends(get_current_active_superuser)],response_model=UserPublic)
-async def delete_user(session: SessionDep, current_user: CurrentDep, user_id: uuid.UUID):
+@router.delete("/{user_id}", dependencies=[Depends(get_current_active_superuser)], response_model=UserPublic)
+async def delete_user(session:SessionDep, current_user: CurrentDep, user_id:uuid.UUID):
     user_db = session.get(User, user_id)
     if not user_db:
         raise HTTPException(status_code=404, detail="User not found")
@@ -67,7 +68,7 @@ async def delete_user(session: SessionDep, current_user: CurrentDep, user_id: uu
     return {"message": "User deleted successfully"}
 
 @router.patch("/me", response_model=UserPublic)
-async def update_me(*, session:SessionDep, current_user:CurrentDep, user_in:UserUpdateMe):
+async def update_me(session: SessionDep, current_user: CurrentDep, user_in: UserUpdateMe):
     if user_in.email:
         user_new = crud.get_user_by_email(email=user_in.email, session=session)
         if user_new and user_new.email != current_user.email:
@@ -77,7 +78,7 @@ async def update_me(*, session:SessionDep, current_user:CurrentDep, user_in:User
     return user
 
 @router.patch("/{user_id}", dependencies=[Depends(get_current_active_superuser)], response_model=UserPublic)
-async def update_user(*, session:SessionDep, user_id:uuid.UUID, user_in:UserUpdate):
+async def update_user(session: SessionDep, user_id: uuid.UUID, user_in: UserUpdate):
     user_db = session.get(User, user_id)
     if not user_db:
         raise HTTPException(status_code=404, detail="User not found")
