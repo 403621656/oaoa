@@ -1,10 +1,12 @@
 from fastapi import APIRouter, HTTPException, Query, Depends
 from app.api.deps import CurrentDep, SessionDep, get_current_active_superuser
 from app import crud
-from app.models import User, UserCreate, UserRegister, UserUpdate, UserUpdateMe, DBItem, UserPublic, UsersPublic
+from app.models import User, UserCreate, UserRegister, UserUpdate, UserUpdateMe, DBItem, UserPublic, UsersPublic, UpdatePassword
 from sqlmodel import select, delete, col, func
 from typing import Annotated
+from app.core.security import get_hashed_password, verify_password
 import uuid
+
 
 router = APIRouter(
     prefix="/users",
@@ -73,9 +75,25 @@ async def update_me(session: SessionDep, current_user: CurrentDep, user_in: User
         user_new = crud.get_user_by_email(email=user_in.email, session=session)
         if user_new and user_new.email != current_user.email:
             raise HTTPException(status_code=409, detail="Email already registered")
-    user_update = UserUpdate.model_validate(user_in)
-    user = crud.update_user(session=session, db_user=current_user, user_in=user_update)
-    return user
+    user_update = user_in.model_dump(exclude_unset=True)
+    user_db = current_user.sqlmodel_update(user_update)
+    session.add(user_db)
+    session.commit()
+    session.refresh(user_db)
+    return user_db
+
+@router.patch("/me/password")
+async def update_password(session: SessionDep, current_user: CurrentDep, body: UpdatePassword):
+    if not verify_password(body.current_password, current_user.hashed_password):
+        raise HTTPException(status_code=400, detail="Incorrect password")
+    if body.current_password == body.new_password:
+        raise HTTPException(status_code=400, detail="New password cannot be the same as the current one")
+    hashed_password = get_hashed_password(body.new_password)
+    current_user.hashed_password = hashed_password
+    session.add(current_user)
+    session.commit()
+    return {"message": "Password updated successfully"}
+
 
 @router.patch("/{user_id}", dependencies=[Depends(get_current_active_superuser)], response_model=UserPublic)
 async def update_user(session: SessionDep, user_id: uuid.UUID, user_in: UserUpdate):
