@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 import uvicorn
 from app.core.db import create_db_and_tables, init_db, engine
-from app.api.routes import items, users, login
+from app.api import main
 from contextlib import asynccontextmanager
 from sqlmodel import Session
 from app.core.db import engine
@@ -30,9 +30,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(login.router, prefix="/api/v1")
-app.include_router(users.router, prefix="/api/v1")
-app.include_router(items.router, prefix="/api/v1")
+app.include_router(main.router, prefix="/api/v1")
 
 
 
