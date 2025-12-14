@@ -1,17 +1,16 @@
 import jwt
 from fastapi.security import OAuth2PasswordBearer
-from app.models import User,TokenPayload
+from app.models import User, TokenPayload
 from sqlmodel import Session
 from app.core.db import engine
 from collections.abc import Generator
 from fastapi import Depends, HTTPException, status
 from typing import Annotated
-from app.core.config import SECRET_KEY
-from app.core.security import ALGORITHM
+from app.core.config import settings
 from jwt.exceptions import InvalidTokenError
 from pydantic import ValidationError
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/login/access-token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/login/access-token")
 
 def get_session() -> Generator[Session, None, None]:
     with Session(engine) as session:
@@ -22,7 +21,7 @@ TokenDep = Annotated[str, Depends(oauth2_scheme)]
 
 def get_current_user(token: TokenDep, session: SessionDep) -> User :
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         token_data  = TokenPayload(**payload)
     except (ValidationError, InvalidTokenError):
         raise HTTPException(

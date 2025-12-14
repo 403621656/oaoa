@@ -1,28 +1,22 @@
 from sqlmodel import create_engine, SQLModel, Session, select
-from app.core.config import db_config
+from app.core.config import settings
 from app.models import User, UserCreate
-import os
-from dotenv import load_dotenv
 from app.crud import create_user
 
-
-load_dotenv()
-
-
-sql_url = db_config.DATABASE_URL
+sql_url = str(settings.SQLALCHEMY_DATABASE_URI)
 engine = create_engine(sql_url)
 
 def create_db_and_tables() -> None:
     SQLModel.metadata.create_all(engine)
 
 def init_db(session:Session) -> None:
-    statement = select(User).where(User.email==os.getenv("EMAIL"))
+    statement = select(User).where(User.email==settings.FIRST_SUPERUSER)
     user_super = session.exec(statement).first()
     if not user_super:
         create_super = UserCreate(
-            full_name=os.getenv("USERNAME"),
-            email=os.getenv("EMAIL"),
-            password=os.getenv("PASSWORD"),
+            full_name=settings.FIRST_SUPERUSER_NAME,
+            email=settings.FIRST_SUPERUSER_EMAIL,
+            password=settings.FIRST_SUPERUSER_PASSWORD,
             is_superuser=True,
         )
         user_super = create_user(user_create=create_super, session=session)

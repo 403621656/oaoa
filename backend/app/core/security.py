@@ -1,11 +1,10 @@
 import jwt
 from pwdlib import PasswordHash
 from datetime import datetime, timedelta, timezone
-from app.core.config import SECRET_KEY
+from app.core.config import settings
 import uuid
 
 
-ALGORITHM = "HS256"
 password_hash = PasswordHash.recommended()
 
 def get_hashed_password(password: str) -> str:
@@ -17,5 +16,5 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def create_access_token(data: uuid.UUID | str, expires_delta: timedelta):
     exp = datetime.now(timezone.utc) + expires_delta
     to_encode = {"sub": str(data), "exp": exp}          #确保是str
-    encode_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    encode_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encode_jwt
