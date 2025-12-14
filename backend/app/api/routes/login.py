@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from typing import Annotated
 from app.api.deps import SessionDep
-from app.core.config import ACESS_TOKEN_EXPIRE_MINUTES
+from app.core.config import settings
 from app.core.security import create_access_token
 from datetime import timedelta
 
@@ -17,7 +17,7 @@ def login_access_token(form_data : Annotated[OAuth2PasswordRequestForm, Depends(
         raise HTTPException(status_code=400, detail="Incorrect email or password")
     elif not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
-    expire = timedelta(minutes=ACESS_TOKEN_EXPIRE_MINUTES)
+    expire = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(data=user.id, expires_delta=expire)
     return Token(access_token=access_token, token_type="bearer")
 
